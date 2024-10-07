@@ -48,7 +48,7 @@ namespace KasynoBot.Commands.Slash
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed));
         }
 
-        [SlashCommand("pkn", "Gra w papier, kamień, nożyce")]
+        [SlashCommand("pkn", "Gra w Papier, Kamień, Nożyce")]
         public async Task KPN(InteractionContext ctx,
             [Option("wybór", "Twój wybór")] string choice)
         {

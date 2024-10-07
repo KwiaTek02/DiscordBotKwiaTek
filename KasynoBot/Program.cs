@@ -10,8 +10,6 @@ using DSharpPlus.Lavalink;
 using KasynoBot.Commands.Prefix;
 using KasynoBot.Commands.Slash;
 using KasynoBot.ConfigHandler;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Net;
 using DSharpPlus.Net;
 
 
@@ -43,7 +41,6 @@ namespace KasynoBot
             client = new DiscordClient(clientConfiguration);
 
             client.Ready += Client_Ready;
-            client.ComponentInteractionCreated += Client_Button_Interaction_Created;
 
             var commandsConfiguration = new CommandsNextConfiguration
             {
@@ -76,46 +73,19 @@ namespace KasynoBot
             await client.ConnectAsync();
             await Task.Delay(-1);
         }
-
-        private static async Task Client_Button_Interaction_Created(DiscordClient sender, ComponentInteractionCreateEventArgs args)
-        {
-            switch (args.Interaction.Data.CustomId)
-            {
-                case "info":
-                    var user = args.Interaction.User;
-                    var embed = new DiscordEmbedBuilder()
-                        .WithTitle("Informacje o użytkowniku")
-                        .WithDescription($"Nazwa: {user.Mention}\nID: {user.Id}\nData założenia konta: {user.CreationTimestamp}")
-                        .WithThumbnail(user.AvatarUrl)
-                        .WithColor(DiscordColor.Gold)
-                        .AddField("user", user.Mention, true);
-                    await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed));
-                    break;
-            }
-        }
-        public async Task Ping(InteractionContext ctx)
-        {
-            var embed = new DiscordEmbedBuilder()
-                .WithTitle("Twój ping!")
-                .WithDescription($"{ctx.Client.Ping}ms")
-                .WithColor(DiscordColor.Gold);
-            var button = new DiscordButtonComponent(ButtonStyle.Primary, "ping", "Sprawdź ponownie");
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed).AddComponents(button));
-        }
-
         private static async Task Client_Ready(DiscordClient sender, ReadyEventArgs args)
         {
             Console.WriteLine("Bot jest gotowy do zabaw!");
             var endpoint = new ConnectionEndpoint
             {
-                Hostname = "192.168.1.13", // Adres Lavalink
-                Port = 2333 // Port Lavalink
+                Hostname = "192.168.1.13",
+                Port = 2333 
             };
 
             var lavalink = client.UseLavalink();
             var lavalinkConfig = new LavalinkConfiguration
             {
-                Password = "Dupa123", // Hasło Lavalink
+                Password = "Dupa123",
                 RestEndpoint = endpoint,
                 SocketEndpoint = endpoint
             };

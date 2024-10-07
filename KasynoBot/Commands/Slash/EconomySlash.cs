@@ -113,24 +113,42 @@ namespace KasynoBot.Commands.Slash
             {
                 var embed = new DiscordEmbedBuilder()
                     .WithTitle("Ruletka")
-                    .WithDescription("Nie masz wystarczającej liczby żetonów, aby postawić ten zakład.")
-                    .WithColor(DiscordColor.Red);
+                    .WithDescription("Nie masz odpowiedniej liczby żetonów, aby postawić ten zakład.")
+                    .WithColor(DiscordColor.DarkRed);
+                await ctx.CreateResponseAsync(embed: embed);
+                return;
+            }
+
+            if (bet <= 0)
+            {
+                var embed = new DiscordEmbedBuilder()
+                    .WithTitle("Ruletka")
+                    .WithDescription("Wpisz poprawny zakład.")
+                    .WithColor(DiscordColor.DarkRed);
                 await ctx.CreateResponseAsync(embed: embed);
                 return;
             }
 
             Random random = new Random();
-            int result = random.Next(0, 37);
+            int result = random.Next(1, 37);
             bool isRed = new[] { 1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36 }.Contains(result);
             bool isEven = result % 2 == 0;
             int payout = 0;
+            var emoji999 = DiscordEmoji.FromName(ctx.Client, ":bangbang:");
+
 
             switch (option.ToLower())
             {
                 case "parzyste":
                     if (isEven && result != 0) payout = (int)(bet * 2);
                     break;
+                case "parzysta":
+                    if (isEven && result != 0) payout = (int)(bet * 2);
+                    break;
                 case "nieparzyste":
+                    if (!isEven && result != 0) payout = (int)(bet * 2);
+                    break;
+                case "nieparzysta":
                     if (!isEven && result != 0) payout = (int)(bet * 2);
                     break;
                 case "czerwony":
@@ -170,9 +188,21 @@ namespace KasynoBot.Commands.Slash
                     if (result >= 25 && result <= 36) payout = (int)(bet * 3);
                     break;
                 default:
-                    if (int.TryParse(option, out int chosenNumber) && chosenNumber == result)
+                    if (int.TryParse(option, out int chosenNumber))
                     {
-                        payout = (int)(bet * 36);
+                        if (chosenNumber == result)
+                        {
+                            payout = (int)(bet * 36);
+                        }
+                    }
+                    else
+                    {
+                        var embed = new DiscordEmbedBuilder()
+                            .WithTitle("Ruletka")
+                            .WithDescription($"Błędna wpisana opcja. Spis opcji znajduję się pod /ruletka-info{emoji999}")
+                            .WithColor(DiscordColor.IndianRed);
+                        await ctx.CreateResponseAsync(embed: embed);
+                        return; 
                     }
                     break;
             }
@@ -224,12 +254,22 @@ namespace KasynoBot.Commands.Slash
             {
                 var embed = new DiscordEmbedBuilder()
                     .WithTitle("Jackpot")
-                    .WithDescription("Nie masz wystarczającej liczby żetonów, aby zakręcić spinami .")
-                    .WithColor(DiscordColor.Red);
+                    .WithDescription("Nie masz odpowiedniej liczby żetonów, aby zakręcić spinami .")
+                    .WithColor(DiscordColor.DarkRed);
                 await ctx.CreateResponseAsync(embed: embed);
                 return;
             }
 
+            if (bet <= 0)
+            {
+                var embed = new DiscordEmbedBuilder()
+
+                    .WithTitle($"Jackpot {slot}")
+                    .WithDescription($"Postaw poprawny zakład")
+                    .WithColor(DiscordColor.DarkRed);
+                await ctx.CreateResponseAsync(embed: embed);
+                return;
+            }
             Dictionary<DiscordEmoji, int> emojiWeights = new Dictionary<DiscordEmoji, int>
             {
                 { emoji1, 25 }, 
@@ -532,10 +572,9 @@ namespace KasynoBot.Commands.Slash
             var embed = new DiscordEmbedBuilder()
             
                 .WithTitle("Ruletka Informacje")
-                .WithDescription("W ruletce możesz obstawiać wiele zakładów.\nZastosowanie: /ruletka <bet> <option>\n\nMnożniki wypłat:\r\n[x36] Pojedynczy numer\r\n[x3] Tuziny (1-12, 13-24, 25-36)\r\n[x3] Kolumny (1st, 2nd, 3rd)\r\n[x2] Połówki (1-18, 19-36)\r\n[x2] Nieparzyste/parzyste\r\n[x2] Kolory (czerwony, czarny)\n\nPrzykłady:\r\n/ruletka 200 nieparzyste\r\n/ruletka 600 2\r\n/ruletka 40 13-24")
+                .WithDescription("W ruletce możesz obstawiać wiele zakładów.\nZastosowanie: /ruletka <bet> <option>\n\nMnożniki wypłat:\r\n[x36] Pojedynczy numer\r\n[x3] Tuziny (1-12, 13-24, 25-36)\r\n[x3] Kolumny (1st, 2nd, 3rd)\r\n[x2] Połówki (1-18, 19-36)\r\n[x2] Nieparzyste/parzyste\r\n[x2] Kolory (czerwony, czarny)\n\nPrzykłady:\r\n/ruletka 200 nieparzyste\r\n/ruletka 600 2\r\n/ruletka 40 13-24\n\n Opcje wyboru:\r\n⚪️ parzyste, nieparzyste\r\n⚪️ czerwony, czarny\r\n⚪️ 1-18, 19-36, 1-12, 13-24, 25-36\r\n⚪️ 1st, 2nd, 3rd\r\n⚪️ pojedyńcza liczba od 1 do 36")
                 .WithColor(DiscordColor.Gold);
-
-            embed.WithImageUrl($"attachment://ruletka.png");
+                embed.WithImageUrl($"attachment://ruletka.png");
 
             using (var stream = new FileStream(rouletteImagePath, FileMode.Open, FileAccess.Read))
             {
@@ -544,8 +583,7 @@ namespace KasynoBot.Commands.Slash
                     .AddFile("ruletka.png", stream)
                     .WithEmbed(embed);
 
-                await ctx.Channel.SendMessageAsync(messageBuilder);
-            }
+                await ctx.Channel.SendMessageAsync(messageBuilder); }
         }
 
         [SlashCommand("top", "Wyświetla top 5 najbogatszych osób na serwerze.")]
@@ -553,6 +591,7 @@ namespace KasynoBot.Commands.Slash
         {
             ulong serverId = ctx.Guild.Id;
             ulong userId = ctx.User.Id;
+            var kasa = DiscordEmoji.FromName(ctx.Client, ":coin:");
 
             if (!serverUserBalances.ContainsKey(serverId) || serverUserBalances[serverId].Count == 0)
             {
@@ -568,7 +607,7 @@ namespace KasynoBot.Commands.Slash
             // Pobierz top 3 najbogatszych osób na serwerze
             var topUsers = serverUserBalances[serverId]
                 .OrderByDescending(kv => kv.Value)
-                .Take(5)
+                .Take(3)
                 .ToList();
 
             var descriptionBuilder = new StringBuilder();
@@ -577,7 +616,7 @@ namespace KasynoBot.Commands.Slash
                 var user = await ctx.Guild.GetMemberAsync(topUsers[i].Key);
                 if (user != null)
                 {
-                    descriptionBuilder.AppendLine($"{i + 1}. {user.Mention} - {topUsers[i].Value} żetonów.");
+                    descriptionBuilder.AppendLine($"{i + 1}. {user.Mention} - {topUsers[i].Value} {kasa}.");
                 }
             }
 
@@ -588,13 +627,14 @@ namespace KasynoBot.Commands.Slash
 
             int userRank = allUsersSorted.FindIndex(kv => kv.Key == userId) + 1;
 
-            if (userRank <= 5)
+            if (userRank <= 3)
             {
                 descriptionBuilder.AppendLine($"\nZajmujesz {userRank} miejsce w rankingu!");
             }
             else
             {
-                descriptionBuilder.AppendLine($"\nZajmujesz {userRank} miejsce w rankingu, poza top 3.");
+                long userBalance = serverUserBalances[serverId][userId];
+                descriptionBuilder.AppendLine($"\nZajmujesz {userRank} miejsce w rankingu z {userBalance} {kasa} !");
             }
 
             var embed2 = new DiscordEmbedBuilder()

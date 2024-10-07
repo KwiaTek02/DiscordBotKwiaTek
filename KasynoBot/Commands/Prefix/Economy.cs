@@ -119,7 +119,7 @@ namespace KasynoBot.Commands.Prefix
             bool isEven = result % 2 == 0;
             int payout = 0;
 
-            switch (option.ToLower())
+            switch (option.ToLower())            // Do poprawy
             {
                 case "parzyste":
                     if (isEven && result != 0) payout = bet * 2;
@@ -130,7 +130,13 @@ namespace KasynoBot.Commands.Prefix
                 case "czerwony":
                     if (isRed) payout = bet * 2;
                     break;
+                case "czerwone":
+                    if (isRed) payout = bet * 2;
+                    break;
                 case "czarny":
+                    if (!isRed && result != 0) payout = bet * 2;
+                    break;
+                case "czarne":
                     if (!isRed && result != 0) payout = bet * 2;
                     break;
                 case "1-18":
@@ -161,6 +167,11 @@ namespace KasynoBot.Commands.Prefix
                     if (int.TryParse(option, out int chosenNumber) && chosenNumber == result)
                     {
                         payout = bet * 36;
+                    }
+                    else
+                    {
+                        await ctx.RespondAsync("Błędna opcja. Wpisz poprawną");
+                        return;
                     }
                     break;
             }
